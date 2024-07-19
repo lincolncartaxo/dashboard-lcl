@@ -60,19 +60,13 @@ if os.path.exists(file_path):
     # Aplicar a transformação condicional no DataFrame filtrado
     df_filtrado['Valor Total'] = df_filtrado.apply(lambda row: row['Valor Total'] * -1 if row['Tipo_Despesa'] == 'CUSTO' else row['Valor Total'], axis=1)
 
-    st.subheader("Soma Mensal do Valor Total")
-    col1, col2 = st.columns((2))
-    with col1:
-        # Criando o gráfico de barras mensal com Plotly Express para o DataFrame filtrado
-        fig_mes2 = px.bar(df_filtrado, x='Mes', y='Valor Total', color="Projeto", title='Soma Mensal do Valor Total')
+    st.title("Análise de Investimentos")
 
-        # Exibindo o gráfico
-        st.plotly_chart(fig_mes2)
-    
-    with col2:
-        st.dataframe(df_filtrado)
 
-    st.subheader("Soma Mensal do Valor Total por Projeto")
+    with st.expander("Banco de Dados"):
+        st.write(df_filtrado)
+
+    st.subheader("Valor Total por Projeto")
     # Agrupar por data e projeto no DataFrame filtrado
     df_agrupado = df_filtrado.groupby(['Mes', 'Projeto'])['Valor Total'].sum().reset_index()
     col1, col2 = st.columns((2))
@@ -87,7 +81,7 @@ if os.path.exists(file_path):
         # Exibir o DataFrame agrupado
         st.dataframe(df_agrupado)
 
-    st.subheader("Dados Agrupados por Mês")
+    st.subheader("Total Mensal")
     df_agrupado_mes = df_filtrado.groupby('Mes')['Valor Total'].sum().reset_index()
     col1, col2 = st.columns((2))
     with col1:
@@ -130,7 +124,7 @@ if os.path.exists(file_path):
 
     st.subheader("Fluxo de Caixa")
     # Agrupar por data e despesa no DataFrame filtrado
-    df_agrupado_fluxo = df.groupby(['Mes', 'Tipo_Despesa'])['Valor Total'].sum().reset_index()
+    df_agrupado_fluxo = df_filtrado.groupby(['Mes', 'Tipo_Despesa'])['Valor Total'].sum().reset_index()
     col1, col2 = st.columns((2))
     with col1:
         color_map = {'CUSTO': 'rgb(255, 0, 0)',  # Vermelho para despesas
