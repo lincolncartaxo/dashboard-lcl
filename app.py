@@ -146,7 +146,7 @@ if os.path.exists(file_path):
     with col2:
         df_total_geral = df_filtrado['Valor Total'].sum()
         st.subheader("Resultado")
-        st.metric(label="Total de Despesas", value=f"R$ {df_total_geral:.2f}".replace('.', ','))
+        st.metric(label="Total Geral", value=f"R$ {df_total_geral:.2f}".replace('.', ','))
 
 else:
     st.error(f"Arquivo '{file_path}' não encontrado.")
