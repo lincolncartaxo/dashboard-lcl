@@ -9,11 +9,23 @@ file_path = "dados.xlsx"
 if os.path.exists(file_path):
     # Carregar os dados
     df = pd.read_excel(file_path, decimal=",")
+
+    # Converte a coluna "Data" para datetime
     df["Data"] = pd.to_datetime(df["Data"], format="%d/%m/%Y")
 
     # Criar coluna 'Mes'
-    df["Mes"] = df["Data"].dt.strftime("%Y-%m")
-    
+    df["Mes"] = df["Data"].dt.strftime("%Y-%m")   
+
+    # Cria uma versão formatada da coluna "Data" para exibição
+    df["Data_"] = df["Data"].dt.strftime("%d/%m/%Y")
+
+    # Função para formatar números com vírgula como separador decimal
+    def format_number(x):
+        return f"{x:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
+    # Aplica a formatação aos números nas colunas "Valor Unit" e "Valor Total"
+    df["Valor Unit"] = df["Valor Unit"].apply(format_number)
+    df["Valor Total_"] = df["Valor Total"].apply(format_number)
 
 
     # Configuração geral da página
@@ -22,9 +34,12 @@ if os.path.exists(file_path):
     # Barra lateral
     st.sidebar.header('Análise das Finanças - LCL Projetos')
 
-    meses = st.sidebar.multiselect("Mês", df["Mes"].unique(), default=df["Mes"].unique())
-    projetos = st.sidebar.multiselect("Projeto", df["Projeto"].unique(), default=df["Projeto"].unique())
-    tipos = st.sidebar.multiselect("Tipo", df["Tipo_Despesa"].unique(), default=df["Tipo_Despesa"].unique())
+    meses = st.sidebar.multiselect("Mês", df["Mes"].unique(), default=df["Mes"].unique(), placeholder="Selecione o(s) Mes(es)")
+    projetos = st.sidebar.multiselect("Projeto", df["Projeto"].unique(), default=df["Projeto"].unique(), placeholder="Selecione o(s) Projeto(s)")
+    tipos = st.sidebar.multiselect("Tipo", df["Tipo_Despesa"].unique(), default=df["Tipo_Despesa"].unique(), placeholder="Selecione o(s) Tipo(s)")
+    nf = st.sidebar.multiselect("Nota Fiscal", df["NF"].unique(), default=[], placeholder="Selecione a Nota Fiscal")
+    descricao = st.sidebar.multiselect("Descrição", df["Descrição"].unique(), default=[], placeholder="Selecione a Descrição")
+    fornecedor = st.sidebar.multiselect("Fornecedor", df["Fornecedor"].unique(), default=[], placeholder="Selecione o Fornecedor")
 
     # Dashboard
 
@@ -57,14 +72,25 @@ if os.path.exists(file_path):
     if tipos:
         df_filtrado = df_filtrado[df_filtrado["Tipo_Despesa"].isin(tipos)]
 
+    if nf:
+        df_filtrado = df_filtrado[df_filtrado["NF"].isin(nf)]
+
+    if descricao:
+        df_filtrado = df_filtrado[df_filtrado["Descrição"].isin(descricao)]
+    
+    if fornecedor:
+        df_filtrado = df_filtrado[df_filtrado["Fornecedor"].isin(fornecedor)]
+
     # Aplicar a transformação condicional no DataFrame filtrado
     df_filtrado['Valor Total'] = df_filtrado.apply(lambda row: row['Valor Total'] * -1 if row['Tipo_Despesa'] == 'CUSTO' else row['Valor Total'], axis=1)
-
+    
     st.title("Análise de Investimentos")
 
 
     with st.expander("Banco de Dados"):
-        st.write(df_filtrado)
+
+        colunas_para_exibir = ["Projeto","Data_", "NF", "Fornecedor", "Tipo_Despesa", "Descrição", "und", "Qtd", "Valor Unit", "Valor Total_", "Obs"]
+        st.write(df_filtrado[colunas_para_exibir])
 
     st.subheader("Valor Total por Projeto")
     # Agrupar por data e projeto no DataFrame filtrado
